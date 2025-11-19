@@ -1,6 +1,5 @@
 package org.workshop.finalproject.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
 

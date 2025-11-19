@@ -1,7 +1,5 @@
 package org.workshop.finalproject.controller;
 
-import org.workshop.finalproject.dto.UserRequestDTO;
-import org.workshop.finalproject.dto.UserResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.workshop.finalproject.dto.UserRequestDTO;
+import org.workshop.finalproject.dto.UserResponseDTO;
 import org.workshop.finalproject.service.UserService;
 
 @RestController

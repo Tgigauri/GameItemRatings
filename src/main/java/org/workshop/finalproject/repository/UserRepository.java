@@ -1,7 +1,7 @@
 package org.workshop.finalproject.repository;
 
-import org.workshop.finalproject.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.workshop.finalproject.model.User;
 
 import java.util.Optional;
 
