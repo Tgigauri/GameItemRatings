@@ -19,9 +19,9 @@ public class CommentController {
 
     @PostMapping
     public CommentResponseDTO addComment(
-            @PathVariable Integer userId,
+            @PathVariable(required = false) Long userId,
             @RequestBody @Valid CommentRequestDTO dto) {
-        return commentService.addComment(Long.valueOf(userId), dto);
+        return commentService.addComment(userId, dto);
     }
 
     @GetMapping

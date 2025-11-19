@@ -31,8 +31,11 @@ public class CommentService {
 
     @Transactional
     public CommentResponseDTO addComment(Long userId, CommentRequestDTO dto) {
-        User author = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not Found"));
+        User author = null;
+        if (userId != null) {
+            author = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        }
 
         Game game = gameRepository.findGameById(dto.getGameId())
                 .orElseThrow(() -> new IllegalArgumentException("Game not Found"));
@@ -45,7 +48,7 @@ public class CommentService {
                 .author(author)
                 .item(item)
                 .createdAt(LocalDateTime.now())
-                .approved(false)
+                .approved(author != null)
                 .build();
 
         Comment saved = commentRepository.save(comment);
@@ -110,18 +113,25 @@ public class CommentService {
         Game game = item.getGame();
         User author = comment.getAuthor();
 
-        return CommentResponseDTO.builder()
+        CommentResponseDTO.CommentResponseDTOBuilder builder = CommentResponseDTO.builder()
                 .id(comment.getId())
                 .message(comment.getComment())
-                .authorId(author.getId())
-                .authorName(author.getFirstName())
                 .itemId(item.getId())
                 .itemTitle(item.getTitle())
                 .text(item.getText())
                 .gameId(game.getId())
                 .gameName(game.getGameName())
                 .createdAt(comment.getCreatedAt())
-                .approved(comment.isApproved())
-                .build();
+                .approved(comment.isApproved());
+
+        if (author != null) {
+            builder.authorId(author.getId())
+                    .authorName(author.getFirstName());
+        } else {
+            builder.authorId(null)
+                    .authorName("Anonymous");
+        }
+
+        return builder.build();
     }
 }

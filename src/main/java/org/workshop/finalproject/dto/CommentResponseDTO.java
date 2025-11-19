@@ -21,4 +21,5 @@ public class CommentResponseDTO {
     private Long gameId;
     private String gameName;
     private String text;
+    private String anonymousId;
 }

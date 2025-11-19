@@ -10,6 +10,7 @@ import org.workshop.finalproject.dto.ItemResponseDTO;
 import org.workshop.finalproject.dto.ItemUpdateDTO;
 import org.workshop.finalproject.model.Game;
 import org.workshop.finalproject.model.Item;
+import org.workshop.finalproject.model.Role;
 import org.workshop.finalproject.model.User;
 import org.workshop.finalproject.repository.GameRepository;
 import org.workshop.finalproject.repository.ItemRepository;
@@ -35,6 +36,13 @@ public class ItemService {
 
         User seller = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (seller.getRole() != Role.SELLER) {
+            throw new RuntimeException("Only users with role SELLER can create items");
+        }
+
+
+        checkApprovedSeller(seller);
 
 
         Game game = gameRepository.findGameByGameName(dto.getGameName())
@@ -67,6 +75,7 @@ public class ItemService {
         if (!Objects.equals(item.getSeller().getId(), userId)) {
             throw new RuntimeException("You are not allowed to edit this item");
         }
+        checkApprovedSeller(item.getSeller());
 
         if (dto.getTitle() != null && !dto.getTitle().isBlank()) {
             item.setTitle(dto.getTitle());
@@ -154,6 +163,15 @@ public class ItemService {
         dto.setUpdatedAt(item.getUpdatedAt());
 
         return dto;
+    }
+
+    private void checkApprovedSeller(User user) {
+        if (user.getRole() != Role.SELLER) {
+            throw new RuntimeException("Only sellers allowed");
+        }
+        if (!user.isApproved()) {
+            throw new RuntimeException("Seller not approved by admin yet");
+        }
     }
 
 }
