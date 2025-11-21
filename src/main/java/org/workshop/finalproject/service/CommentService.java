@@ -1,7 +1,6 @@
 package org.workshop.finalproject.service;
 
 import jakarta.transaction.Transactional;
-import jdk.jshell.execution.Util;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.workshop.finalproject.dto.CommentRequestDTO;
@@ -17,6 +16,7 @@ import org.workshop.finalproject.repository.ItemRepository;
 import org.workshop.finalproject.repository.UserRepository;
 import org.workshop.finalproject.util.Utils;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -32,18 +32,20 @@ public class CommentService {
     private final GameRepository gameRepository;
 
     @Transactional
-    public CommentResponseDTO addComment(Long userId, CommentRequestDTO dto) {
+    public CommentResponseDTO addComment(Principal principal, CommentRequestDTO dto) {
         User author = null;
-        if (userId != null) {
-            author = userRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (principal != null) {
+            author = userRepository.findByEmail(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            if (!author.isApproved()) {
+                throw new RuntimeException("Your account is not approved yet");
+            }
         }
 
-        Game game = gameRepository.findGameById(dto.getGameId())
-                .orElseThrow(() -> new IllegalArgumentException("Game not Found"));
-
         Item item = itemRepository.findById(dto.getItemId())
-                .orElseThrow(() -> new IllegalArgumentException("Game Item not Found"));
+                .orElseThrow(() -> new RuntimeException("Item not found"));
 
         Comment comment = Comment.builder()
                 .comment(dto.getMessage())
@@ -54,61 +56,68 @@ public class CommentService {
                 .build();
 
         Comment saved = commentRepository.save(comment);
-
         return Utils.mapToResponse(saved);
     }
 
-    public List<CommentResponseDTO> getCommentsByUser(Long userId) {
-        List<Comment> comments = commentRepository.findCommentByAuthorId(userId);
+    public List<CommentResponseDTO> getCommentsByUser(Principal principal) {
+        User currentUser = getUserFromPrincipal(principal);
 
+        List<Comment> comments = commentRepository.findCommentByAuthorId(currentUser.getId());
         return comments.stream()
                 .map(Utils::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    public CommentResponseDTO getComment(Long userId, Long commentId) {
+    public CommentResponseDTO getComment(Principal principal, Long commentId) {
+        User currentUser = getUserFromPrincipal(principal);
 
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("Comment not Found"));
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
 
-        if (!Objects.equals(comment.getAuthor().getId(), userId)) {
-            throw new RuntimeException("You are not allowed to view this comment");
+        if (!Objects.equals(comment.getAuthor(), currentUser)) {
+            throw new RuntimeException("You cannot view this comment");
         }
 
         return Utils.mapToResponse(comment);
     }
 
     @Transactional
-    public CommentResponseDTO updateComment(Long userId, Long commentId, CommentUpdateDTO dto) {
+    public CommentResponseDTO updateComment(Principal principal, Long commentId, CommentUpdateDTO dto) {
+        User currentUser = getUserFromPrincipal(principal);
 
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("Comment not Found"));
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
 
-        if (!Objects.equals(comment.getAuthor().getId(), userId)) {
-            throw new RuntimeException("You are not allowed to edit this comment");
+        if (!Objects.equals(comment.getAuthor(), currentUser)) {
+            throw new RuntimeException("You cannot edit this comment");
         }
 
         if (dto.getMessage() != null && !dto.getMessage().isBlank()) {
             comment.setComment(dto.getMessage());
         }
 
-        commentRepository.save(comment);
-
-        return Utils.mapToResponse(comment);
+        return Utils.mapToResponse(commentRepository.save(comment));
     }
 
     @Transactional
-    public void deleteComment(Long userId, Long commentId) {
+    public void deleteComment(Principal principal, Long commentId) {
+        User currentUser = getUserFromPrincipal(principal);
 
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("Comment not Found"));
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
 
-        if (!Objects.equals(comment.getAuthor().getId(), userId)) {
-            throw new RuntimeException("You are not allowed to delete this comment");
+        if (!Objects.equals(comment.getAuthor(), currentUser)) {
+            throw new RuntimeException("You cannot delete this comment");
         }
 
         commentRepository.delete(comment);
     }
 
-
+    private User getUserFromPrincipal(Principal principal) {
+        if (principal == null) {
+            throw new RuntimeException("Anonymous users cannot perform this action");
+        }
+        return userRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
 }

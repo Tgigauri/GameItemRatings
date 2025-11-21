@@ -3,6 +3,7 @@ package org.workshop.finalproject.config;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.workshop.finalproject.model.*;
 import org.workshop.finalproject.repository.CommentRepository;
@@ -22,6 +23,7 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final GameRepository gameRepository;
     private final ItemRepository itemRepository;
+    private final PasswordEncoder passwordEncoder;
     private final CommentRepository commentRepository;
 
     private final Random random = new Random();
@@ -53,6 +55,16 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
             sellers.add(userRepository.save(seller));
         }
+
+        User admin = User.builder()
+                .firstName("Tornike")
+                .lastName("Gigauri")
+                .email("admin@example.com")
+                .password(passwordEncoder.encode("123456"))
+                .role(Role.ADMINISTRATOR)
+                .approved(true)
+                .build();
+        userRepository.save(admin);
 
         List<Item> items = new ArrayList<>();
         for (User seller : sellers) {

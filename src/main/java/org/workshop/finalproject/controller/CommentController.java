@@ -8,10 +8,11 @@ import org.workshop.finalproject.dto.CommentResponseDTO;
 import org.workshop.finalproject.dto.CommentUpdateDTO;
 import org.workshop.finalproject.service.CommentService;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users/{userId}/comments")
+@RequestMapping("/comments")
 @RequiredArgsConstructor
 public class CommentController {
 
@@ -19,40 +20,30 @@ public class CommentController {
 
     @PostMapping
     public CommentResponseDTO addComment(
-            @PathVariable(required = false) Long userId,
-            @RequestBody @Valid CommentRequestDTO dto) {
-        return commentService.addComment(userId, dto);
+            @RequestBody @Valid CommentRequestDTO dto,
+            Principal principal) {
+        return commentService.addComment(principal, dto);
     }
 
-    @GetMapping
-    public List<CommentResponseDTO> getAllComments(
-            @PathVariable Long userId) {
-
-        return commentService.getCommentsByUser(userId);
+    @GetMapping("/my")
+    public List<CommentResponseDTO> getMyComments(Principal principal) {
+        return commentService.getCommentsByUser(principal);
     }
 
     @GetMapping("/{commentId}")
-    public CommentResponseDTO getComment(
-            @PathVariable Long userId,
-            @PathVariable Long commentId) {
-
-        return commentService.getComment(userId, commentId);
+    public CommentResponseDTO getComment(@PathVariable Long commentId, Principal principal) {
+        return commentService.getComment(principal, commentId);
     }
 
     @PutMapping("/{commentId}")
-    public CommentResponseDTO updateComment(
-            @PathVariable Long userId,
-            @PathVariable Long commentId,
-            @RequestBody CommentUpdateDTO dto) {
-
-        return commentService.updateComment(userId, commentId, dto);
+    public CommentResponseDTO updateComment(@PathVariable Long commentId,
+                                            @RequestBody CommentUpdateDTO dto,
+                                            Principal principal) {
+        return commentService.updateComment(principal, commentId, dto);
     }
 
     @DeleteMapping("/{commentId}")
-    public void deleteComment(
-            @PathVariable Long userId,
-            @PathVariable Long commentId) {
-
-        commentService.deleteComment(userId, commentId);
+    public void deleteComment(@PathVariable Long commentId, Principal principal) {
+        commentService.deleteComment(principal, commentId);
     }
 }

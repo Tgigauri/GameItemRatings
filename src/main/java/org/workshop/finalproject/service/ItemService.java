@@ -16,6 +16,7 @@ import org.workshop.finalproject.repository.GameRepository;
 import org.workshop.finalproject.repository.ItemRepository;
 import org.workshop.finalproject.repository.UserRepository;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -31,19 +32,9 @@ public class ItemService {
     private final GameRepository gameRepository;
 
     @Transactional
-    public ItemResponseDTO createItem(Long userId, ItemRequestDTO dto) {
-
-
-        User seller = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (seller.getRole() != Role.SELLER) {
-            throw new RuntimeException("Only users with role SELLER can create items");
-        }
-
-
+    public ItemResponseDTO createItem(Principal principal, ItemRequestDTO dto) {
+        User seller = getUserFromPrincipal(principal);
         checkApprovedSeller(seller);
-
 
         Game game = gameRepository.findGameByGameName(dto.getGameName())
                 .orElseGet(() -> {
@@ -61,108 +52,81 @@ public class ItemService {
         item.setUpdatedAt(LocalDateTime.now());
 
         item = itemRepository.save(item);
-
-
         return toResponse(item);
     }
 
     @Transactional
-    public ItemResponseDTO updateItem(Long itemId, Long userId, ItemUpdateDTO dto) {
+    public ItemResponseDTO updateItem(Principal principal, Long itemId, ItemUpdateDTO dto) {
+        User currentUser = getUserFromPrincipal(principal);
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
-        if (!Objects.equals(item.getSeller().getId(), userId)) {
+        if (!Objects.equals(item.getSeller(), currentUser)) {
             throw new RuntimeException("You are not allowed to edit this item");
         }
-        checkApprovedSeller(item.getSeller());
+
+        checkApprovedSeller(currentUser);
 
         if (dto.getTitle() != null && !dto.getTitle().isBlank()) {
             item.setTitle(dto.getTitle());
         }
-
         if (dto.getText() != null && !dto.getText().isBlank()) {
             item.setText(dto.getText());
         }
-
         if (dto.getGameName() != null && !dto.getGameName().isBlank()) {
-
             Game game = gameRepository.findGameByGameName(dto.getGameName())
                     .orElseGet(() -> {
                         Game g = new Game();
                         g.setGameName(dto.getGameName());
                         return gameRepository.save(g);
                     });
-
             item.setGame(game);
         }
 
         item.setUpdatedAt(LocalDateTime.now());
-
-        itemRepository.save(item);
-
-        return toResponse(item);
+        return toResponse(itemRepository.save(item));
     }
 
     public List<ItemResponseDTO> getAllItems() {
-
-        List<Item> items = itemRepository.findAll();
-
-        return items.stream()
+        return itemRepository.findAll()
+                .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
-    public Page<ItemResponseDTO> getAllItems(Pageable pageable) {
-
-        return itemRepository.findAll(pageable)
-                .map(this::toResponse);
-    }
-
-    public List<ItemResponseDTO> getItemsByUser(Long userId) {
-
-        Optional<Item> items = itemRepository.findBySellerId(userId);
-
-        return items.stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+    public ItemResponseDTO getItemById(Long itemId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Item not found"));
+        return toResponse(item);
     }
 
     @Transactional
-    public void deleteItem(Long itemId, Long userId) {
+    public void deleteItem(Principal principal, Long itemId) {
+        User currentUser = getUserFromPrincipal(principal);
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
-        if (!Objects.equals(item.getSeller().getId(), userId)) {
+        if (!Objects.equals(item.getSeller(), currentUser)) {
             throw new RuntimeException("You are not allowed to delete this item");
         }
 
         itemRepository.delete(item);
     }
 
-    public ItemResponseDTO getItemById(Long itemId) {
-
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
-
-        return toResponse(item);
-    }
-
     private ItemResponseDTO toResponse(Item item) {
-        ItemResponseDTO dto = new ItemResponseDTO();
-
-        dto.setId(item.getId());
-        dto.setItemTitle(item.getTitle());
-        dto.setItemDescription(item.getText());
-        dto.setGameId(item.getGame().getId());
-        dto.setGameName(item.getGame().getGameName());
-        dto.setSellerName(item.getSeller().getFirstName());
-        dto.setSellerId(item.getSeller().getId());
-        dto.setCreatedAt(item.getCreatedAt());
-        dto.setUpdatedAt(item.getUpdatedAt());
-
-        return dto;
+        return ItemResponseDTO.builder()
+                .id(item.getId())
+                .itemTitle(item.getTitle())
+                .itemDescription(item.getText())
+                .gameId(item.getGame().getId())
+                .gameName(item.getGame().getGameName())
+                .sellerId(item.getSeller().getId())
+                .sellerName(item.getSeller().getFirstName())
+                .createdAt(item.getCreatedAt())
+                .updatedAt(item.getUpdatedAt())
+                .build();
     }
 
     private void checkApprovedSeller(User user) {
@@ -174,4 +138,11 @@ public class ItemService {
         }
     }
 
+    private User getUserFromPrincipal(Principal principal) {
+        if (principal == null) {
+            throw new RuntimeException("You must be logged in to perform this action");
+        }
+        return userRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
 }
