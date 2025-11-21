@@ -1,6 +1,7 @@
 package org.workshop.finalproject.service;
 
 import jakarta.transaction.Transactional;
+import jdk.jshell.execution.Util;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.workshop.finalproject.dto.CommentRequestDTO;
@@ -14,6 +15,7 @@ import org.workshop.finalproject.repository.CommentRepository;
 import org.workshop.finalproject.repository.GameRepository;
 import org.workshop.finalproject.repository.ItemRepository;
 import org.workshop.finalproject.repository.UserRepository;
+import org.workshop.finalproject.util.Utils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -53,14 +55,14 @@ public class CommentService {
 
         Comment saved = commentRepository.save(comment);
 
-        return mapToResponse(saved);
+        return Utils.mapToResponse(saved);
     }
 
     public List<CommentResponseDTO> getCommentsByUser(Long userId) {
         List<Comment> comments = commentRepository.findCommentByAuthorId(userId);
 
         return comments.stream()
-                .map(this::mapToResponse)
+                .map(Utils::mapToResponse)
                 .collect(Collectors.toList());
     }
 
@@ -73,7 +75,7 @@ public class CommentService {
             throw new RuntimeException("You are not allowed to view this comment");
         }
 
-        return mapToResponse(comment);
+        return Utils.mapToResponse(comment);
     }
 
     @Transactional
@@ -92,7 +94,7 @@ public class CommentService {
 
         commentRepository.save(comment);
 
-        return mapToResponse(comment);
+        return Utils.mapToResponse(comment);
     }
 
     @Transactional
@@ -108,30 +110,5 @@ public class CommentService {
         commentRepository.delete(comment);
     }
 
-    private CommentResponseDTO mapToResponse(Comment comment) {
-        Item item = comment.getItem();
-        Game game = item.getGame();
-        User author = comment.getAuthor();
 
-        CommentResponseDTO.CommentResponseDTOBuilder builder = CommentResponseDTO.builder()
-                .id(comment.getId())
-                .message(comment.getComment())
-                .itemId(item.getId())
-                .itemTitle(item.getTitle())
-                .text(item.getText())
-                .gameId(game.getId())
-                .gameName(game.getGameName())
-                .createdAt(comment.getCreatedAt())
-                .approved(comment.isApproved());
-
-        if (author != null) {
-            builder.authorId(author.getId())
-                    .authorName(author.getFirstName());
-        } else {
-            builder.authorId(null)
-                    .authorName("Anonymous");
-        }
-
-        return builder.build();
-    }
 }

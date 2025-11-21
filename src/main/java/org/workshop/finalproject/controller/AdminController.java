@@ -2,6 +2,8 @@ package org.workshop.finalproject.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.workshop.finalproject.dto.CommentResponseDTO;
+import org.workshop.finalproject.model.Comment;
 import org.workshop.finalproject.model.User;
 import org.workshop.finalproject.service.AdminService;
 
@@ -27,5 +29,20 @@ public class AdminController {
     @PutMapping("/sellers/{id}/reject")
     public User rejectSeller(@PathVariable Long id) {
         return adminService.rejectSeller(id);
+    }
+
+    @GetMapping("/pending-comments")
+    public List<CommentResponseDTO> getPendingComments() {
+        return adminService.getPendingComments();
+    }
+
+    @PutMapping("/comments/{id}/approve")
+    public CommentResponseDTO approveComment(@PathVariable Long id) {
+        return adminService.approveComment(id);
+    }
+
+    @PutMapping("/comments/{id}/reject")
+    public CommentResponseDTO rejectComment(@PathVariable Long id) {
+        return adminService.rejectComment(id);
     }
 }
