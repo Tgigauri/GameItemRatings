@@ -11,7 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.workshop.finalproject.service.CustomUserDetailsService;
+import org.workshop.finalproject.modules.auth.service.CustomUserDetailsService;
 
 import java.io.IOException;
 @Component

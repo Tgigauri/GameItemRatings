@@ -38,7 +38,7 @@ public record CustomUserDetails(
 
     @Override
     public boolean isAccountNonLocked() {
-        return approved;
+        return true;
     }
 
     @Override
@@ -48,6 +48,6 @@ public record CustomUserDetails(
 
     @Override
     public boolean isEnabled() {
-        return approved;
+        return true;
     }
 }

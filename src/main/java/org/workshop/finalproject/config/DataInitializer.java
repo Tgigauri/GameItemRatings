@@ -5,11 +5,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.workshop.finalproject.model.*;
-import org.workshop.finalproject.repository.CommentRepository;
-import org.workshop.finalproject.repository.GameRepository;
-import org.workshop.finalproject.repository.ItemRepository;
-import org.workshop.finalproject.repository.UserRepository;
+import org.workshop.finalproject.modules.comment.model.Comment;
+import org.workshop.finalproject.modules.game.model.Game;
+import org.workshop.finalproject.modules.item.model.Item;
+import org.workshop.finalproject.modules.user.model.Role;
+import org.workshop.finalproject.modules.user.model.User;
+import org.workshop.finalproject.modules.comment.repository.CommentRepository;
+import org.workshop.finalproject.modules.game.repository.GameRepository;
+import org.workshop.finalproject.modules.item.repository.ItemRepository;
+import org.workshop.finalproject.modules.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -33,10 +37,10 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
         if (userRepository.count() > 0) return;
 
-        List<String> firstNames = List.of("Alice", "Bob", "Charlie", "Diana", "Ethan");
-        List<String> lastNames = List.of("Smith", "Johnson", "Williams", "Brown", "Jones");
-        List<String> gameNames = List.of("CS:GO", "Dota 2", "FIFA 23", "Team Fortress 2", "Valorant");
-        List<String> itemTitles = List.of("Karambit", "AWP", "FIFA Ultimate Player", "Rocket Launcher", "Phantom");
+        List<String> firstNames = List.of("Ilia", "Jalaka", "Zoro", "Mindia", "Giorfi");
+        List<String> lastNames = List.of("Topturo", "Johnsona", "Gegeshidze", "Bulachauri", "Girgoevski");
+        List<String> gameNames = List.of("CS:GO 2", "Dota 2", "FIFA 24", "Factorio", "Valorant");
+        List<String> itemTitles = List.of("Karambit", "AWP", "FIFA Ultimate Player", "Worker Skin", "Phantom");
         List<String> itemDescriptions = List.of("Rare skin", "Legendary item", "Top-tier stats", "Limited edition", "Epic quality");
 
         List<Game> games = gameNames.stream()
@@ -59,7 +63,7 @@ public class DataInitializer implements CommandLineRunner {
         User admin = User.builder()
                 .firstName("Tornike")
                 .lastName("Gigauri")
-                .email("admin@example.com")
+                .email("tgigauri32@gmail.com")
                 .password(passwordEncoder.encode("123456"))
                 .role(Role.ADMINISTRATOR)
                 .approved(true)

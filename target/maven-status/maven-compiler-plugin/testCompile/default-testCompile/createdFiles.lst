@@ -1,1 +1,3 @@
 org\workshop\finalproject\FinalProjectApplicationTests.class
+org\workshop\finalproject\ItemServiceUnitTest.class
+org\workshop\finalproject\ItemServiceIntegrationTest.class
