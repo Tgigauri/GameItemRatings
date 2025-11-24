@@ -16,8 +16,6 @@ public class JwtUtil {
 
     private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
-    private final long expiration = 1000 * 60 * 60 * 24;
-
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -32,6 +30,7 @@ public class JwtUtil {
     }
 
     public String generateToken(UserDetails userDetails) {
+        long expiration = 1000 * 60 * 60 * 24;
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
