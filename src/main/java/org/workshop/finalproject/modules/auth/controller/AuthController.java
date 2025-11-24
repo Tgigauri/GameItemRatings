@@ -24,7 +24,7 @@ public class AuthController {
     @GetMapping("/confirm_email")
     public ResponseEntity<String> confirmEmail(@RequestParam String code) {
         authService.confirmEmail(code);
-        return ResponseEntity.ok("Email confirmed! You can now login.");
+        return ResponseEntity.ok("Email is confirmed! You can now login");
     }
 
     @PostMapping("/login")

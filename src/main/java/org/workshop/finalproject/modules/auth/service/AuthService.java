@@ -84,6 +84,8 @@ public class AuthService {
 
     @Transactional
     public void confirmEmail(String code) {
+
+        //For Testing Purposes the code will be logged in the console
         String email = redisTemplate.opsForValue().get(code);
         if (email == null) {
             throw new RuntimeException("Invalid or expired confirmation code");
